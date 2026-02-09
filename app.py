@@ -10,6 +10,7 @@ features = joblib.load("features.pkl")
 
 app = FastAPI()
 
+# 1. Define the Input Format
 class OpportunityInput(BaseModel):
     amount: float
     stage: str
@@ -17,11 +18,16 @@ class OpportunityInput(BaseModel):
     type: str
     close_days: int
 
+# 2. Define the Output Format (THIS IS WHAT WAS MISSING!)
+class PredictionOutput(BaseModel):
+    win_probability: float
+
 @app.get("/")
 def home():
     return {"status": "running"}
 
-@app.post("/predict")
+# 3. Add response_model=PredictionOutput here
+@app.post("/predict", response_model=PredictionOutput)
 def predict(data: OpportunityInput):
     # Create dataframe
     input_df = pd.DataFrame([{
@@ -47,4 +53,5 @@ def predict(data: OpportunityInput):
     input_scaled = scaler.transform(input_df)
     probability = float(model.predict_proba(input_scaled)[0][1])
     
+    # Return matched format
     return {"win_probability": round(probability, 4)}
